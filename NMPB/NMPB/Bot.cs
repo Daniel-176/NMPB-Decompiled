@@ -119,6 +119,8 @@ namespace NMPB
 
 		public string DownloaderProxy;
 
+		public string Token;
+
 		public readonly string RootDirectory;
 
 		public readonly string WorkingWirectory;
@@ -373,7 +375,7 @@ namespace NMPB
 				{
 					return false;
 				}
-				return this._sequencer.get_Playing();
+				return this._sequencer.Playing;
 			}
 		}
 
@@ -381,7 +383,7 @@ namespace NMPB
 		{
 			get
 			{
-				return this.Client.NoteQuota.get_Points();
+				return this.Client.NoteQuota.Points;
 			}
 		}
 
@@ -526,28 +528,22 @@ namespace NMPB
 
 		public Bot(string root = "")
 		{
-			// 
-			// Current member / type: System.Void NMPB.Bot::.ctor(System.String)
-			// File path: C:\Users\Daniel176\Downloads\NMPB v1.2 bin\NMPB.dll
-			// 
-			// Product version: 2024.1.131.0
-			// Exception in: System.Void .ctor(System.String)
-			// 
-			// Object reference not set to an instance of an object.
-			//    at ..( , Int32 , Statement& , Int32& ) in C:\DeveloperTooling_JD_Agent1\_work\15\s\OpenSource\Cecil.Decompiler\Steps\CodePatterns\ObjectInitialisationPattern.cs:line 78
-			//    at ..( , Int32& , Statement& , Int32& ) in C:\DeveloperTooling_JD_Agent1\_work\15\s\OpenSource\Cecil.Decompiler\Steps\CodePatterns\BaseInitialisationPattern.cs:line 33
-			//    at ..( ) in C:\DeveloperTooling_JD_Agent1\_work\15\s\OpenSource\Cecil.Decompiler\Steps\CodePatternsStep.cs:line 57
-			//    at ..(ICodeNode ) in C:\DeveloperTooling_JD_Agent1\_work\15\s\OpenSource\Cecil.Decompiler\Ast\BaseCodeTransformer.cs:line 49
-			//    at ..Visit(ICodeNode ) in C:\DeveloperTooling_JD_Agent1\_work\15\s\OpenSource\Cecil.Decompiler\Ast\BaseCodeTransformer.cs:line 276
-			//    at ..(DecompilationContext ,  ) in C:\DeveloperTooling_JD_Agent1\_work\15\s\OpenSource\Cecil.Decompiler\Steps\CodePatternsStep.cs:line 33
-			//    at ..(MethodBody ,  , ILanguage ) in C:\DeveloperTooling_JD_Agent1\_work\15\s\OpenSource\Cecil.Decompiler\Decompiler\DecompilationPipeline.cs:line 88
-			//    at ..(MethodBody , ILanguage ) in C:\DeveloperTooling_JD_Agent1\_work\15\s\OpenSource\Cecil.Decompiler\Decompiler\DecompilationPipeline.cs:line 70
-			//    at Telerik.JustDecompiler.Decompiler.Extensions.( , ILanguage , MethodBody , DecompilationContext& ) in C:\DeveloperTooling_JD_Agent1\_work\15\s\OpenSource\Cecil.Decompiler\Decompiler\Extensions.cs:line 95
-			//    at Telerik.JustDecompiler.Decompiler.Extensions.(MethodBody , ILanguage , DecompilationContext& ,  ) in C:\DeveloperTooling_JD_Agent1\_work\15\s\OpenSource\Cecil.Decompiler\Decompiler\Extensions.cs:line 58
-			//    at ..(ILanguage , MethodDefinition ,  ) in C:\DeveloperTooling_JD_Agent1\_work\15\s\OpenSource\Cecil.Decompiler\Decompiler\WriterContextServices\BaseWriterContextService.cs:line 117
-			// 
-			// mailto: JustDecompilePublicFeedback@telerik.com
-
+			this.AvalibleCommandsSet = new Dictionary<string, HashSet<string>>();
+			this.RootDirectory = (root == null) ? Directory.GetCurrentDirectory() : root;
+			this._octaveCount = new LimitedValue(0, 10, -127, 127, 0);
+			this._echoCount = new LimitedValue(0, 10, 0, 127, 0);
+			this._echoDelay = new LimitedValue(0, 1000, 0, 10000, 0);
+			this._echoFade = new LimitedValue(0, 100, 0, 100, 100);
+			this._transpose = new LimitedValue(-24, 24, -127, 127, 0);
+			this._names = new List<string>();
+			this._hashes = new List<string>();
+			this._mainMutex = new Mutex(false, "NMPB");
+			this._l = new Localization();
+			this._roomIsVisible = true;
+			this._roomHasChat = true;
+			this._roomSoloPlay = false;
+			this._roomColor = Color.FromArgb(0, 0, 0);
+			this.Client = new Player();
 		}
 
 		public int AddFile(string path, string name = null, bool force = false)
@@ -681,17 +677,17 @@ namespace NMPB
 		private void BindListeners()
 		{
 			Player client = this.Client;
-			client.Cursor = (Player.CursorDelegate)Delegate.Combine(client.Cursor, new Player.CursorDelegate(this, Bot.Cursor));
-			this.Client.add_ChatReceived(new EventHandler<ChatMessageEventArgs>(this.OnChatReceived));
-			this.Client.add_UserEntered(new EventHandler<UserBaseEventArgs>(this.Welcome));
-			this.Client.add_UserLeft(new EventHandler<UserBaseEventArgs>(this.OnBye));
-			this.Client.add_UserUpdated(new EventHandler<UserBaseEventArgs>(this.OnUserUpdate));
-			this.Client.add_ConnectionError(new EventHandler<NMPB.Client.ErrorEventArgs>(this.ClientOnConnectionError));
-			this.Client.add_Connected(new EventHandler<ConnectedEventArgs>(this.ClientOnConnected));
-			this.Client.add_Disconnected(this.ConnectionBroken);
-			this.Client.add_NoteBufferReceived(this.UserNotePlayed);
-			this.Client.add_TextDebug(new EventHandler<DebugMessageEventArgs>(this.ClientOnTextDebug));
-			this.Client.add_NoteBufferReceived(new EventHandler<UserNoteBufferEventArgs>(this.CheckRoomEnterAllowance));
+			client.Cursor = (Player.CursorDelegate)Delegate.Combine(client.Cursor, new Player.CursorDelegate(this.Cursor));
+			this.Client.ChatReceived += new EventHandler<ChatMessageEventArgs>(this.OnChatReceived);
+			this.Client.UserEntered += new EventHandler<UserBaseEventArgs>(this.Welcome);
+			this.Client.UserLeft += new EventHandler<UserBaseEventArgs>(this.OnBye);
+			this.Client.UserUpdated += new EventHandler<UserBaseEventArgs>(this.OnUserUpdate);
+			this.Client.ConnectionError += new EventHandler<NMPB.Client.ErrorEventArgs>(this.ClientOnConnectionError);
+			this.Client.Connected += new EventHandler<ConnectedEventArgs>(this.ClientOnConnected);
+			this.Client.Disconnected += this.ConnectionBroken;
+			this.Client.NoteBufferReceived += this.UserNotePlayed;
+			this.Client.TextDebug += new EventHandler<DebugMessageEventArgs>(this.ClientOnTextDebug);
+			this.Client.NoteBufferReceived += new EventHandler<UserNoteBufferEventArgs>(this.CheckRoomEnterAllowance);
 		}
 
 		private void CheckMasterLeave(User user)
@@ -740,15 +736,15 @@ namespace NMPB
 			{
 				return;
 			}
-			if (e.get_User().Id != this.Client.Channel.Crown.ParticipantId)
+			if (e.User.Id != this.Client.Channel.Crown.ParticipantId)
 			{
 				return;
 			}
-			if (e.get_Notes() == null)
+			if (e.Notes == null)
 			{
 				return;
 			}
-			if (e.get_Notes().Any<Note>((Note note) => note.Value == "GTFO"))
+			if (e.Notes.Any<Note>((Note note) => note.Value == "GTFO"))
 			{
 				this.LogChat(string.Format(this.L.ConnectionDenied, this.DateNowString()));
 				this.Disconnect();
@@ -779,29 +775,29 @@ namespace NMPB
 		private void ClientOnConnected(object sender, ConnectedEventArgs args)
 		{
 			this.LogChat("");
-			this.LogChat(string.Format(this.L.SystemInfoConnected, this.DateNowString(), args.get_Version()));
-			this.LogChat(string.Format(this.L.Motd, this.DateNowString(), args.get_Motd()));
+			this.LogChat(string.Format(this.L.SystemInfoConnected, this.DateNowString(), args.Version));
+			this.LogChat(string.Format(this.L.Motd, this.DateNowString(), args.Motd));
 			this.LogChat(string.Format(this.L.SystemInfoRoom, this.DateNowString(), this._room));
 		}
 
 		private void ClientOnConnectionError(object sender, NMPB.Client.ErrorEventArgs errorEventArgs)
 		{
-			string message = errorEventArgs.get_Exception().Message;
-			if (errorEventArgs.get_Exception().InnerException != null)
+			string message = errorEventArgs.Exception.Message;
+			if (errorEventArgs.Exception.InnerException != null)
 			{
-				message = string.Concat(message, " ", errorEventArgs.get_Exception().InnerException.Message);
+				message = string.Concat(message, " ", errorEventArgs.Exception.InnerException.Message);
 			}
 			this.LogChat(string.Format(this.L.ConnectionError, this.DateNowString(), message));
 		}
 
 		private void ClientOnDataDebug(object sender, DebugMessageEventArgs args)
 		{
-			this.LogChat(string.Format("{0} | DATA: {1}.", this.DateNowString(), args.get_Message()));
+			this.LogChat(string.Format("{0} | DATA: {1}.", this.DateNowString(), args.Message));
 		}
 
 		private void ClientOnTextDebug(object sender, DebugMessageEventArgs args)
 		{
-			this.LogChat(string.Format("{0} | DEBUG: {1}.", this.DateNowString(), args.get_Message()));
+			this.LogChat(string.Format("{0} | DEBUG: {1}.", this.DateNowString(), args.Message));
 		}
 
 		public void Connect(string room)
@@ -817,6 +813,7 @@ namespace NMPB
 			}
 			this.InitChatFile();
 			this.Client.SetChannel(this._room, new ChannelSettings(false, this.RoomIsVisible, this.RoomHasChat, this.RoomSoloPlay, NamedColor.ToHex(this._roomColor)));
+			((NMPB.Client.Client)this.Client).Token = this.Token;
 			if (!this.Client.IsConnected())
 			{
 				this.Client.Start();
@@ -851,7 +848,7 @@ namespace NMPB
 					posY = 100;
 					return;
 				}
-				double position = (double)this._sequencer.get_Position() / (double)this._sequence.GetLength();
+				double position = (double)this._sequencer.Position / (double)this._sequence.GetLength();
 				posX = 80 * position + 8;
 				posY = 15;
 				return;
@@ -861,8 +858,8 @@ namespace NMPB
 				return;
 			}
 			double time = (double)this.GetTime() / 1000;
-			posX = this.Master.get_X() + this.CircleRadius * Math.Cos(time) * 9 / 16;
-			posY = this.Master.get_Y() + this.CircleRadius * Math.Sin(time);
+			posX = this.Master.X + this.CircleRadius * Math.Cos(time) * 9 / 16;
+			posY = this.Master.Y + this.CircleRadius * Math.Sin(time);
 		}
 
 		private string DateNowString()
@@ -1246,7 +1243,7 @@ namespace NMPB
 			{
 				if (this._loaded)
 				{
-					tuple = new Tuple<string, string>(this.GetSequenceTimeString(this._sequencer.get_Position()), this.GetSequenceTimeString(-1));
+					tuple = new Tuple<string, string>(this.GetSequenceTimeString(this._sequencer.Position), this.GetSequenceTimeString(-1));
 				}
 				else
 				{
@@ -1372,7 +1369,7 @@ namespace NMPB
 
 		private string GetSequenceTimeString(TimeSpan time)
 		{
-			time = TimeSpan.FromMilliseconds(time.TotalMilliseconds * this._sequencer.get_TempoMultiplier());
+			time = TimeSpan.FromMilliseconds(time.TotalMilliseconds * this._sequencer.TempoMultiplier);
 			return string.Format(this.L.TrackTimeTemplate, Math.Floor(time.TotalMinutes), time.Seconds);
 		}
 
@@ -1582,6 +1579,11 @@ namespace NMPB
 			}
 			if (!File.Exists(this._chat))
 			{
+				string chatDir = Path.Combine(this.RootDirectory, "chat");
+				if (!Directory.Exists(chatDir))
+				{
+					Directory.CreateDirectory(chatDir);
+				}
 				File.Create(this._chat).Close();
 			}
 		}
@@ -1798,13 +1800,13 @@ namespace NMPB
 						this._sequence = this._sequence.Reverse(true);
 					}
 					this._sequence = this._sequence.Trim(true);
-					this._sequencer.set_Sequence(this._sequence);
+					this._sequencer.Sequence = this._sequence;
 					this._nowPlayingLength = this._sequence.GetActualLength(-1);
 					this.Say(string.Format(this.L.ReadingFile, fancyName, this.GetSequenceTimeString(this._nowPlayingLength), (backwards ? this.L.Backwards : "")));
 				}
 				finally
 				{
-					this._status &= (BotStatus)-2;
+					this._status &= ~BotStatus.Loading;
 				}
 			}
 		}
@@ -1997,11 +1999,11 @@ namespace NMPB
 
 		private void OnBye(object sender, UserBaseEventArgs args)
 		{
-			if (args.get_User() == null)
+			if (args.User == null)
 			{
 				return;
 			}
-			User user = this.FindUserByBase(args.get_User());
+			User user = this.FindUserByBase(args.User);
 			if (user == null || !user.Online)
 			{
 				return;
@@ -2020,13 +2022,13 @@ namespace NMPB
 			}
 			if (this.Sustain)
 			{
-				this._sustain.Process(e.get_Message());
+				this._sustain.Process(e.Message);
 			}
-			if (e.get_Message().get_Data2() <= 0 || e.get_Message().get_MidiChannel() == 9 || e.get_Message().get_Command() != 144)
+			if (e.Message.Data2 <= 0 || e.Message.MidiChannel == 9 || e.Message.Command != ChannelCommand.NoteOn)
 			{
 				return;
 			}
-			if (this.PreventDoubles(e.get_Message().get_Data1()))
+			if (this.PreventDoubles(e.Message.Data1))
 			{
 				return;
 			}
@@ -2034,8 +2036,8 @@ namespace NMPB
 			{
 				return;
 			}
-			int data1 = e.get_Message().get_Data1();
-			int data2 = e.get_Message().get_Data2();
+			int data1 = e.Message.Data1;
+			int data2 = e.Message.Data2;
 			if (this.LogarthmicVelocity)
 			{
 				double num = (double)data2 / 127;
@@ -2043,7 +2045,7 @@ namespace NMPB
 				{
 					num *= 0.75;
 				}
-				data2 = (int)Math.Min(Math.Round((Math.Pow(num, 2.5) + 0.03) * 127), 127);
+				data2 = (int)Math.Min(Math.Round((Math.Pow(num, 2.5) + 0.03) * 127.0), 127.0);
 			}
 			if (this.Inversed)
 			{
@@ -2085,7 +2087,7 @@ namespace NMPB
 
 		private void OnChatReceived(object sender, ChatMessageEventArgs e)
 		{
-			this.ProcessChat(e.get_Message(), e.get_Username(), e.get_Color(), e.get_Auid(), false);
+			this.ProcessChat(e.Message, e.Username, e.Color, e.Auid, false);
 		}
 
 		private void OnNamesChanged(object sender, FileSystemEventArgs e)
@@ -2141,18 +2143,18 @@ namespace NMPB
 		private void OnUserUpdate(object sender, UserBaseEventArgs args)
 		{
 			bool flag;
-			User nearestColorName = this.FindUserByBase(args.get_User());
+			User nearestColorName = this.FindUserByBase(args.User);
 			if (nearestColorName == null)
 			{
 				return;
 			}
-			flag = (nearestColorName.get_X() != args.get_User().get_X() ? true : nearestColorName.get_Y() != args.get_User().get_Y());
-			bool name = nearestColorName.Name != args.get_User().Name;
-			if (nearestColorName.Color != args.get_User().Color)
+			flag = (nearestColorName.X != args.User.X ? true : nearestColorName.Y != args.User.Y);
+			bool name = nearestColorName.Name != args.User.Name;
+			if (nearestColorName.Color != args.User.Color)
 			{
-				nearestColorName.ColorName = this.GetNearestColorName(args.get_User().Color);
+				nearestColorName.ColorName = this.GetNearestColorName(args.User.Color);
 			}
-			nearestColorName.UpdateFromBase(args.get_User());
+			nearestColorName.UpdateFromBase(args.User);
 			if (flag)
 			{
 				this.UserMouseMoved(this, new UserEventArgs(nearestColorName));
@@ -2274,12 +2276,12 @@ namespace NMPB
 			{
 				foreach (MidiEvent midiEvent in track.Iterator())
 				{
-					ChannelMessage midiMessage = midiEvent.get_MidiMessage() as ChannelMessage;
-					if (midiMessage == null || midiMessage.get_Command() != 144 || midiMessage.get_MidiChannel() == 9 || midiMessage.get_Data2() == 0)
+					ChannelMessage midiMessage = midiEvent.MidiMessage as ChannelMessage;
+					if (midiMessage == null || midiMessage.Command != ChannelCommand.NoteOn || midiMessage.MidiChannel == 9 || midiMessage.Data2 == 0)
 					{
 						continue;
 					}
-					numArray[midiMessage.get_Data2()]++;
+					numArray[midiMessage.Data2]++;
 				}
 			}
 			this._hushNotes = numArray.ToList<int>().GetRange(0, 90).Sum() < numArray.ToList<int>().GetRange(90, 38).Sum();
@@ -2500,18 +2502,18 @@ namespace NMPB
 			}
 			this._loaded = false;
 			Sequence sequence = new Sequence();
-			sequence.set_Format(1);
+			sequence.Format = 1;
 			this._sequence = sequence;
 			Sequencer sequencer = new Sequencer();
-			sequencer.set_Position(0);
-			sequencer.set_Sequence(this._sequence);
+			sequencer.Position = 0;
+			sequencer.Sequence = this._sequence;
 			this._sequencer = sequencer;
-			this._sequencer.add_ChannelMessagePlayed(new EventHandler<ChannelMessageEventArgs>(this.OnChannelMessagePlayed));
-			this._sequencer.add_ChannelMessagePlayed(this.MidiMessagePlayed);
-			this._sequencer.add_PlayingCompleted(new EventHandler(this.OnPlayCompleted));
-			this._sequencer.add_PlayingCompleted(this.PlayingCompleted);
-			this._sequencer.add_Stopped(new EventHandler<StoppedEventArgs>(this.OnSequencerStop));
-			this._sequencer.add_Stopped(this.SequenserStopped);
+			this._sequencer.ChannelMessagePlayed += new EventHandler<ChannelMessageEventArgs>(this.OnChannelMessagePlayed);
+			this._sequencer.ChannelMessagePlayed += this.MidiMessagePlayed;
+			this._sequencer.PlayingCompleted += new EventHandler(this.OnPlayCompleted);
+			this._sequencer.PlayingCompleted += this.PlayingCompleted;
+			this._sequencer.Stopped += new EventHandler<StoppedEventArgs>(this.OnSequencerStop);
+			this._sequencer.Stopped += this.SequenserStopped;
 			this._sustain = new NMPB.Sustain();
 			this._sustain.NoteReleased += new EventHandler<NoteReleasedEventArgs>(this.OnSustainNoteReleased);
 		}
@@ -2702,8 +2704,8 @@ namespace NMPB
 			if (this._sequence.GetLength() > 0)
 			{
 				string currentPosition = this.L.CurrentPosition;
-				double position = (double)(100 * this._sequencer.get_Position()) / (double)this._sequence.GetLength();
-				this.Say(string.Format(currentPosition, position.ToString("N1", CultureInfo.InvariantCulture), this.GetSequenceTimeString(this._sequencer.get_Position()), this.GetSequenceTimeString(this._nowPlayingLength)));
+				double position = (double)(100 * this._sequencer.Position) / (double)this._sequence.GetLength();
+				this.Say(string.Format(currentPosition, position.ToString("N1", CultureInfo.InvariantCulture), this.GetSequenceTimeString(this._sequencer.Position), this.GetSequenceTimeString(this._nowPlayingLength)));
 			}
 		}
 
@@ -2869,13 +2871,13 @@ namespace NMPB
 				return;
 			}
 			int length = this._sequence.GetLength();
-			this._sequencer.set_Position((int)Math.Round((double)length * x / 100));
-			this.TrackPositionSet(this, new TrackPositionEventArgs(x, this._sequencer.get_Position(), length));
+			this._sequencer.Position = (int)Math.Round((double)length * x / 100);
+			this.TrackPositionSet(this, new TrackPositionEventArgs(x, this._sequencer.Position, length));
 		}
 
 		public bool ShouldMinimizeChat()
 		{
-			if (!this.Client.get_ConnectedToRoom())
+			if (!this.Client.ConnectedToRoom)
 			{
 				return false;
 			}
@@ -3139,16 +3141,16 @@ namespace NMPB
 
 		private void Welcome(object sender, UserBaseEventArgs args)
 		{
-			this.LogChat(string.Format(this.L.UserEntred, new object[] { this.DateNowString(), args.get_User().Name, args.get_User().Color, args.get_User().Auid }));
-			User user = this.FindUserByBase(args.get_User());
+			this.LogChat(string.Format(this.L.UserEntred, new object[] { this.DateNowString(), args.User.Name, args.User.Color, args.User.Auid }));
+			User user = this.FindUserByBase(args.User);
 			if (user != null)
 			{
-				user.UpdateFromBase(args.get_User());
+				user.UpdateFromBase(args.User);
 			}
 			else
 			{
 				List<User> users = this.Users;
-				User user2 = new User(args.get_User(), this.GetNearestColorName(args.get_User().Color));
+				User user2 = new User(args.User, this.GetNearestColorName(args.User.Color));
 				User user3 = user2;
 				user = user2;
 				users.Add(user3);

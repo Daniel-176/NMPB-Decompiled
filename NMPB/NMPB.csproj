@@ -32,7 +32,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Core" />
-    <Reference Include="NMPB.Client, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="NMPB.Client">
+      <HintPath>..\NMPB.Client\bin\Release\NMPB.Client.dll</HintPath>
+    </Reference>
     <Reference Include="Sanford.Multimedia.Midi, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\build-needs\Sanford.Multimedia.Midi.dll</HintPath>
     </Reference>

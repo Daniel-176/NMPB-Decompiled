@@ -63,8 +63,8 @@ namespace NMPB
 			this.Id = user.Id;
 			this.Name = user.Name;
 			this.Color = user.Color;
-			base.set_X(user.get_X());
-			base.set_Y(user.get_Y());
+			base.X = user.X;
+			base.Y = user.Y;
 			this.Online = true;
 		}
 	}

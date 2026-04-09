@@ -51,6 +51,8 @@ namespace NMPB.Client
 
 		public long ServerTimeOffset;
 
+		public string Token;
+
 		private bool _canConnect;
 
 		private const int AllowedMessageLength = 8192;
@@ -319,7 +321,8 @@ namespace NMPB.Client
 		private void OnWsOpened(object sender, EventArgs e)
 		{
 			this._connectionTime = new DateTime?(DateTime.Now);
-			this.Send("[{\"m\": \"hi\", \"token\": \"setlater\"}]");
+			string token = string.IsNullOrEmpty(this.Token) ? "setlater" : this.Token;
+			this.Send(string.Format("[{{\"m\": \"hi\", \"token\": \"{0}\"}}]", token));
 			this._pingInterval.Start();
 			this._noteBuffer = new JArray();
 			this._noteBufferTime = (long)0;

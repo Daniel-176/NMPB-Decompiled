@@ -48,7 +48,7 @@ namespace NMPB_GUI
 		private static void Log(Exception ex)
 		{
 			string str = string.Concat(ex.Message, Environment.NewLine);
-			str = string.Concat(str, JsonConvert.SerializeObject(ex, 1).Replace("\\r\\n", Environment.NewLine));
+			str = string.Concat(str, JsonConvert.SerializeObject(ex, Formatting.Indented).Replace("\\r\\n", Environment.NewLine));
 			string str1 = string.Format("Crash-{0:yyyy-MM-dd_hh-mm-ss-tt}.txt", DateTime.Now);
 			File.WriteAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), str1), str);
 			if (Program._requiresRestart)

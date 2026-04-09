@@ -86,7 +86,7 @@ namespace NMPB_FileExporter
 			this._mainMutex.WaitOne();
 			try
 			{
-				ReadOnlyCollection<string> names = this.Bot.get_Names();
+				ReadOnlyCollection<string> names = this.Bot.Names;
 				int count = names.Count;
 				int length = 255 - (argument.Length + 1 + 4 + 2 + count.ToString().Length);
 				if (length < 0 || this.checkBox1.Checked && length < names.Count.ToString().Length + 2)

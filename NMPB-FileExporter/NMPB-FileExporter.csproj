@@ -33,7 +33,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="NMPB, Version=1.2.6588.3535, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="NMPB">
+      <HintPath>.\NMPB-FileExporterReferences\NMPB.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />

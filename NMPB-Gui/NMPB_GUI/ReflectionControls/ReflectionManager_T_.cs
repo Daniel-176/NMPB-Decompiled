@@ -26,6 +26,7 @@ namespace NMPB_GUI.ReflectionControls
 			this._obj = obj;
 			this._fields = ((IEnumerable<FieldInfo>)typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public)).ToDictionary<FieldInfo, string>((FieldInfo info) => info.Name);
 			this._properties = ((IEnumerable<PropertyInfo>)typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public)).ToDictionary<PropertyInfo, string>((PropertyInfo info) => info.Name);
+			this.Controls = new Dictionary<string, IControlWrapper>();
 			if (generateWrappers)
 			{
 				foreach (KeyValuePair<string, FieldInfo> _field in this._fields)

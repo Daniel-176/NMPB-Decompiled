@@ -39,10 +39,8 @@ namespace NMPB
 
 		private void NoteOn(int channel, int note)
 		{
-			int num = 1;
-			bool flag = (bool)num;
-			this._sound[channel, note] = (bool)num;
-			this._hold[channel, note] = flag;
+			this._sound[channel, note] = true;
+			this._hold[channel, note] = true;
 		}
 
 		private void PedalPress(int channel)
@@ -65,40 +63,40 @@ namespace NMPB
 
 		public void Process(ChannelMessage msg)
 		{
-			if (msg.get_MidiChannel() == 9)
+			if (msg.MidiChannel == 9)
 			{
 				return;
 			}
-			ChannelCommand command = msg.get_Command();
-			if (command == 128)
+			ChannelCommand command = msg.Command;
+			if (command == ChannelCommand.NoteOff)
 			{
-				this.NoteOff(msg.get_MidiChannel(), msg.get_Data1());
+				this.NoteOff(msg.MidiChannel, msg.Data1);
 				return;
 			}
-			if (command == 144)
+			if (command == ChannelCommand.NoteOn)
 			{
-				if (msg.get_Data2() > 0)
+				if (msg.Data2 > 0)
 				{
-					this.NoteOn(msg.get_MidiChannel(), msg.get_Data1());
+					this.NoteOn(msg.MidiChannel, msg.Data1);
 					return;
 				}
-				this.NoteOff(msg.get_MidiChannel(), msg.get_Data1());
+				this.NoteOff(msg.MidiChannel, msg.Data1);
 				return;
 			}
-			if (command != 176)
+			if (command != ChannelCommand.Controller)
 			{
 				return;
 			}
-			if (msg.get_Data1() != 64)
+			if (msg.Data1 != 64)
 			{
 				return;
 			}
-			if (msg.get_Data2() >= 64)
+			if (msg.Data2 >= 64)
 			{
-				this.PedalPress(msg.get_MidiChannel());
+				this.PedalPress(msg.MidiChannel);
 				return;
 			}
-			this.PedalRelease(msg.get_MidiChannel());
+			this.PedalRelease(msg.MidiChannel);
 		}
 
 		private void TryRelease(int note)

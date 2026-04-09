@@ -119,6 +119,10 @@ namespace NMPB_GUI
 					for (int j = 0; j < (int)strArrays1.Length; j++)
 					{
 						string str2 = strArrays1[j];
+						if (!bot.AvalibleCommandsSet.ContainsKey(str))
+						{
+							bot.AvalibleCommandsSet[str] = new HashSet<string>();
+						}
 						bot.AvalibleCommandsSet[str].Add(str2.ToLower());
 					}
 				}

@@ -35,39 +35,38 @@ if not exist "%NEEDS_DIR%" (
     goto error
 )
 
+echo Copying dependencies from build-needs...
+xcopy /s /y "%NEEDS_DIR%\*" "%BUILD_DIR%\" >nul
+
 echo Building NMPB Solution...
 echo.
-
-echo === Building NMPB.Client ===
-%MSBUILD% NMPB.Client\NMPB.Client.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
-if errorlevel 1 goto error
-if exist "NMPB.Client\bin\Release\*" xcopy /s /y "NMPB.Client\bin\Release\*" "%BUILD_DIR%\" >nul
 
 echo === Building NMPB (Core) ===
 %MSBUILD% NMPB\NMPB.sln /p:Configuration=Release /p:Platform="x86" /v:minimal
 if errorlevel 1 goto error
 if exist "NMPB\bin\Release\*" xcopy /s /y "NMPB\bin\Release\*" "%BUILD_DIR%\" >nul
 
-echo.
-echo === Building NMPB.RemoteControl ===
-%MSBUILD% NMPB.RemoteControl\NMPB.RemoteControl.sln /p:Configuration=Release /p:Platform="x86" /v:minimal
+echo === Building NMPB.Client ===
+%MSBUILD% NMPB.Client\NMPB.Client.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
 if errorlevel 1 goto error
-if exist "NMPB.RemoteControl\bin\Release\*" xcopy /s /y "NMPB.RemoteControl\bin\Release\*" "%BUILD_DIR%\" >nul
+if exist "NMPB.Client\bin\Release\*" xcopy /s /y "NMPB.Client\bin\Release\*" "%BUILD_DIR%\" >nul
 
-echo.
+REM NMPB.RemoteControl skipped - missing decompiled source files
+REM NMPB.Timers removed - unfixable decompilation issues
+
 echo === Building NMPB-GUI ===
+if not exist "NMPB-Gui\NMPB-GUIReferences" mkdir "NMPB-Gui\NMPB-GUIReferences"
 if exist "NMPB\bin\Release\NMPB.dll" xcopy /y "NMPB\bin\Release\NMPB.dll" "NMPB-Gui\NMPB-GUIReferences\" >nul
 %MSBUILD% NMPB-Gui\NMPB-GUI.sln /p:Configuration=Release /p:Platform="x86" /v:minimal
 if errorlevel 1 goto error
 if exist "NMPB-Gui\bin\Release\*" xcopy /s /y "NMPB-Gui\bin\Release\*" "%BUILD_DIR%\" >nul
 
-echo.
 echo === Building NMPB-FileExporter ===
+if not exist "NMPB-FileExporter\NMPB-FileExporterReferences" mkdir "NMPB-FileExporter\NMPB-FileExporterReferences"
+if exist "NMPB\bin\Release\NMPB.dll" xcopy /y "NMPB\bin\Release\NMPB.dll" "NMPB-FileExporter\NMPB-FileExporterReferences\" >nul
 %MSBUILD% NMPB-FileExporter\NMPB-FileExporter.sln /p:Configuration=Release /p:Platform="x86" /v:minimal
 if errorlevel 1 goto error
 if exist "NMPB-FileExporter\bin\Release\*" xcopy /s /y "NMPB-FileExporter\bin\Release\*" "%BUILD_DIR%\" >nul
-
-if exist "%~dp0examplenmpbbuild\localization" xcopy /s /y "%~dp0examplenmpbbuild\localization" "%BUILD_DIR%\localization\" >nul
 
 echo.
 echo ========================================

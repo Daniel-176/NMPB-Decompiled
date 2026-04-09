@@ -691,19 +691,19 @@ namespace NMPB_GUI
 					if (memberInfo.MemberType == MemberTypes.Field)
 					{
 						FieldInfo fieldInfo = (FieldInfo)memberInfo;
-						fieldInfo.SetValue(this.Bot, typeof(Convert).ChangeType(obj.Value, fieldInfo.FieldType));
+						fieldInfo.SetValue(this.Bot, Convert.ChangeType(obj.Value, fieldInfo.FieldType));
 					}
 					if (memberInfo.MemberType != MemberTypes.Property)
 					{
 						continue;
 					}
 					PropertyInfo propertyInfo = (PropertyInfo)memberInfo;
-					propertyInfo.SetValue(this.Bot, typeof(Convert).ChangeType(obj.Value, propertyInfo.PropertyType), (dynamic)null);
+					propertyInfo.SetValue(this.Bot, Convert.ChangeType(obj.Value, propertyInfo.PropertyType), (dynamic)null);
 				}
 			}
 			if (jSON.commandList != (dynamic)null)
 			{
-				this.Bot.AvalibleCommandsSet = (Dictionary<string, HashSet<string>>)typeof(JsonConvert).DeserializeObject<Dictionary<string, HashSet<string>>>(jSON.commandList.ToString());
+				this.Bot.AvalibleCommandsSet = (Dictionary<string, HashSet<string>>)JsonConvert.DeserializeObject<Dictionary<string, HashSet<string>>>(jSON.commandList.ToString());
 				List<string> list = this.Bot.AvalibleCommandsSet.Keys.ToList<string>();
 				for (int i = 0; i < list.Count; i++)
 				{
@@ -717,6 +717,10 @@ namespace NMPB_GUI
 				if (jSON.gui.room != (dynamic)null)
 				{
 					this.room = (string)jSON.gui.room;
+				}
+				if (jSON.gui.token != (dynamic)null)
+				{
+					this.Bot.Token = (string)jSON.gui.token;
 				}
 				if (jSON.gui.language != (dynamic)null)
 				{
@@ -925,6 +929,7 @@ namespace NMPB_GUI
 				{ "room", this.room },
 				{ "language", "Default" },
 				{ "commands", "All" },
+				{ "token", "" },
 				{ "autoRestart", false },
 				{ "autoConnect", false },
 				{ "minimized", false },
@@ -934,7 +939,7 @@ namespace NMPB_GUI
 				{ "windowPos", new Point(-1, -1) },
 				{ "windowSize", new System.Drawing.Size(-1, -1) }
 			};
-			File.WriteAllText(Path.Combine(this.Bot.RootDirectory, filename), JsonConvert.SerializeObject(new { gui = strs, bot = dictionary, commandList = this.Bot.AvalibleCommandsSet }, 1));
+			File.WriteAllText(Path.Combine(this.Bot.RootDirectory, filename), JsonConvert.SerializeObject(new { gui = strs, bot = dictionary, commandList = this.Bot.AvalibleCommandsSet }, Formatting.Indented));
 		}
 
 		private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
