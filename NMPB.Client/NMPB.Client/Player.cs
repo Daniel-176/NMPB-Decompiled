@@ -36,7 +36,7 @@ namespace NMPB.Client
 			private set;
 		}
 
-		public Player(Uri uri = null, string useragent = null)
+		public Player(Uri uri = null, string useragent = null) : base(uri, useragent)
 		{
 			this.BotUserUpdated = (object argument0, UserBaseEventArgs argument1) => {
 			};
@@ -47,11 +47,10 @@ namespace NMPB.Client
 			this.Cursor = (ref double argument6, ref double argument7) => {
 			};
 			this.QuotaLimitation = QuotaLimitations.Easy;
-			base(uri, useragent);
 			this.InitClient();
 		}
 
-		public Player(string room, ChannelSettings settings, string useragent = null)
+		public Player(string room, ChannelSettings settings, string useragent = null) : base(null, useragent)
 		{
 			this.BotUserUpdated = (object argument0, UserBaseEventArgs argument1) => {
 			};
@@ -62,7 +61,6 @@ namespace NMPB.Client
 			this.Cursor = (ref double argument6, ref double argument7) => {
 			};
 			this.QuotaLimitation = QuotaLimitations.Easy;
-			base(null, useragent);
 			this.InitClient();
 			base.SetChannel(Uri.UnescapeDataString(room), settings ?? new ChannelSettings(false, true, true, false, null));
 		}
@@ -153,7 +151,7 @@ namespace NMPB.Client
 
 		private void ReceiveChat(dynamic msg)
 		{
-			if (msg.p == (dynamic)null)
+			if (msg.p == null)
 			{
 				return;
 			}
@@ -232,8 +230,7 @@ namespace NMPB.Client
 			{
 				return;
 			}
-			long? nullable = null;
-			base.StopNote(NoteConverter.Notes[Player.Clamp(code, 0, 127)], nullable);
+			base.StopNote(NoteConverter.Notes[Player.Clamp(code, 0, 127)]);
 		}
 
 		private void UpdateBotUser(object sender, UserBaseEventArgs e)

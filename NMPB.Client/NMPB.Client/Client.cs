@@ -85,11 +85,11 @@ namespace NMPB.Client
 
 		private void BindEventListeners()
 		{
-			this.OnDynamic("hi", (object msg) => {
+			this.OnDynamic("hi", (dynamic msg) => {
 				this._channelReceived = false;
 				this.BotUser = (UserBase)msg.u.ToObject<UserBase>();
 				this.Connected(this, new ConnectedEventArgs((string)msg.v ?? "", (string)msg.motd ?? "", this.BotUser));
-				if (msg.t != (dynamic)null)
+				if (msg.t != null)
 				{
 					this.ReceiveServerTime((long)msg.t);
 				}
@@ -98,14 +98,14 @@ namespace NMPB.Client
 					this.SetChannelSure();
 				}
 			});
-			this.OnDynamic("t", (object msg) => {
-				if (msg.t != (dynamic)null)
+			this.OnDynamic("t", (dynamic msg) => {
+				if (msg.t != null)
 				{
 					this.ReceiveServerTime((long)msg.t);
 				}
 			});
-			this.OnDynamic("ch", (object msg) => {
-				dynamic obj = msg.ch == (dynamic)null;
+			this.OnDynamic("ch", (dynamic msg) => {
+				dynamic obj = msg.ch == null;
 				if (!obj)
 				{
 					if ((obj | !(msg.ch is JObject)) == 0)
@@ -113,7 +113,7 @@ namespace NMPB.Client
 						this._channelReceived = true;
 						this._desiredChannelId = (string)msg.ch._id;
 						this.Channel = (ChannelInfo)msg.ch.ToObject<ChannelInfo>();
-						if (msg.p != (dynamic)null)
+						if (msg.p != null)
 						{
 							this.ParticipantId = (string)msg.p;
 						}
@@ -129,15 +129,15 @@ namespace NMPB.Client
 					}
 				}
 			});
-			this.OnDynamic("p", (object msg) => this.ParticipantUpdate(msg));
-			this.OnDynamic("m", (object msg) => {
+			this.OnDynamic("p", (dynamic msg) => this.ParticipantUpdate(msg));
+			this.OnDynamic("m", (dynamic msg) => {
 				string str = (string)msg.id;
 				if (this.Users.Any<UserBase>((UserBase user) => user.Id == str))
 				{
 					this.ParticipantUpdate(msg);
 				}
 			});
-			this.OnDynamic("bye", (object msg) => this.RemoveParticipant((string)msg.p));
+			this.OnDynamic("bye", (dynamic msg) => this.RemoveParticipant((string)msg.p));
 		}
 
 		private void Connect()
@@ -305,8 +305,7 @@ namespace NMPB.Client
 		{
 			foreach (dynamic obj in (IEnumerable)JArray.Parse(args.Message))
 			{
-				dynamic obj1 = obj != (dynamic)null;
-				if ((!obj1 ? obj1 == null : (obj1 & obj.m != (dynamic)null) == 0))
+				if (obj == null || obj.m == null)
 				{
 					continue;
 				}
@@ -329,51 +328,34 @@ namespace NMPB.Client
 
 		private void ParticipantUpdate(dynamic update)
 		{
-			if (update.id == (dynamic)null)
+			if (update.id == null)
 			{
 				return;
 			}
 			lock (this.Users)
 			{
-				UserBase userBase = this.Users.FirstOrDefault<UserBase>((UserBase user) => {
-					string id = user.Id;
-					if (NMPB.Client.Client.<>o__81.<>p__4 == null)
-					{
-						NMPB.Client.Client.<>o__81.<>p__4 = CallSite<Func<CallSite, object, string>>.Create(Binder.Convert(CSharpBinderFlags.ConvertExplicit, typeof(string), typeof(NMPB.Client.Client)));
-					}
-					!0 target = NMPB.Client.Client.<>o__81.<>p__4.Target;
-					CallSite<Func<CallSite, object, string>> u003cu003ep_4 = NMPB.Client.Client.<>o__81.<>p__4;
-					if (NMPB.Client.Client.<>o__81.<>p__3 == null)
-					{
-						NMPB.Client.Client.<>o__81.<>p__3 = CallSite<Func<CallSite, object, object>>.Create(Binder.GetMember(CSharpBinderFlags.None, "id", typeof(NMPB.Client.Client), (IEnumerable<CSharpArgumentInfo>)(new CSharpArgumentInfo[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) })));
-					}
-					return id == target(u003cu003ep_4, NMPB.Client.Client.<>o__81.<>p__3.Target(NMPB.Client.Client.<>o__81.<>p__3, update));
-				});
+				string updateId = (string)update.id;
+				UserBase userBase = this.Users.FirstOrDefault<UserBase>((UserBase user) => user.Id == updateId);
 				if (userBase != null)
 				{
-					if (update.x != (dynamic)null)
+					if (update.x != null)
 					{
-						userBase.X = (double)((double)update.x);
+						userBase.X = (double)update.x;
 					}
-					if (update.y != (dynamic)null)
+					if (update.y != null)
 					{
-						userBase.Y = (double)((double)update.y);
+						userBase.Y = (double)update.y;
 					}
-					dynamic obj = update.x != (dynamic)null;
-					if (!obj)
+					if (update.x != null || update.y != null)
 					{
-						if ((obj | update.y != (dynamic)null) == 0)
-						{
-							goto Label1;
-						}
+						this.UserMouseMoved(this, new UserBaseEventArgs(userBase));
 					}
-					this.UserMouseMoved(this, new UserBaseEventArgs(userBase));
-					if (update.name != (dynamic)null)
+					if (update.name != null)
 					{
 						userBase.Name = (string)update.name;
 						this.UserNameReceived(this, new UserBaseEventArgs(userBase));
 					}
-					if (update.color != (dynamic)null)
+					if (update.color != null)
 					{
 						userBase.Color = (string)update.color;
 						this.UserColorReceived(this, new UserBaseEventArgs(userBase));
@@ -381,16 +363,16 @@ namespace NMPB.Client
 				}
 				else
 				{
-					UserBase userBase1 = (UserBase)update.ToObject<UserBase>();
+					UserBase userBase1 = update.ToObject<UserBase>();
 					if (userBase1 != null)
 					{
-						if (update.x != (dynamic)null)
+						if (update.x != null)
 						{
-							userBase1.X = (double)((double)update.x);
+							userBase1.X = (double)update.x;
 						}
-						if (update.y != (dynamic)null)
+						if (update.y != null)
 						{
-							userBase1.Y = (double)((double)update.y);
+							userBase1.Y = (double)update.y;
 						}
 						this.Users.Add(userBase1);
 						this.UserEntered(this, new UserBaseEventArgs(userBase1));
