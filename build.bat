@@ -10,14 +10,15 @@ echo - Visual Studio 2022 with ".NET desktop development" workload installed
 echo   (Open VS Installer ^> Modify VS2022 ^> Add workload)
 echo.
 
-set MSBUILD="C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
+set MSBUILD_DIR=C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin
+set MSBUILD="%MSBUILD_DIR%\MSBuild.exe"
 if not exist %MSBUILD% (
     echo ERROR: MSBuild.exe not found.
     echo Please install Visual Studio 2022 with .NET desktop development workload.
     goto error
 )
 
-if not exist "%MSBUILD%\Roslyn\Microsoft.CSharp.Core.targets" (
+if not exist "%MSBUILD_DIR%\Roslyn\Microsoft.CSharp.Core.targets" (
     echo ERROR: Roslyn compiler not found.
     echo Please install .NET desktop development workload in Visual Studio 2022.
     echo Open Visual Studio Installer ^> Modify ^> Add ".NET desktop development"
@@ -25,8 +26,14 @@ if not exist "%MSBUILD%\Roslyn\Microsoft.CSharp.Core.targets" (
 )
 
 set BUILD_DIR=%~dp0build
+set NEEDS_DIR=%~dp0build-needs
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
+if not exist "%NEEDS_DIR%" (
+    echo ERROR: build-needs folder not found.
+    echo Please copy required DLLs to build-needs folder.
+    goto error
+)
 
 echo Building NMPB Solution...
 echo.
@@ -56,6 +63,7 @@ if exist "NMPB.RemoteControl\bin\Release\*" xcopy /s /y "NMPB.RemoteControl\bin\
 
 echo.
 echo === Building NMPB-GUI ===
+if exist "NMPB\bin\Release\NMPB.dll" xcopy /y "NMPB\bin\Release\NMPB.dll" "NMPB-Gui\NMPB-GUIReferences\" >nul
 %MSBUILD% NMPB-Gui\NMPB-GUI.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
 if errorlevel 1 goto error
 if exist "NMPB-Gui\bin\Release\*" xcopy /s /y "NMPB-Gui\bin\Release\*" "%BUILD_DIR%\" >nul
@@ -65,6 +73,8 @@ echo === Building NMPB-FileExporter ===
 %MSBUILD% NMPB-FileExporter\NMPB-FileExporter.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
 if errorlevel 1 goto error
 if exist "NMPB-FileExporter\bin\Release\*" xcopy /s /y "NMPB-FileExporter\bin\Release\*" "%BUILD_DIR%\" >nul
+
+if exist "%~dp0examplenmpbbuild\localization" xcopy /s /y "%~dp0examplenmpbbuild\localization" "%BUILD_DIR%\localization\" >nul
 
 echo.
 echo ========================================
