@@ -43,7 +43,7 @@ namespace NMPB.Client
 			};
 			this.ChatReceived = (object argument4, ChatMessageEventArgs argument5) => {
 			};
-			this.Cursor = (double& argument6, double& argument7) => {
+			this.Cursor = (ref double argument6, ref double argument7) => {
 			};
 			this.QuotaLimitation = QuotaLimitations.Easy;
 			base(uri, useragent);
@@ -58,7 +58,7 @@ namespace NMPB.Client
 			};
 			this.ChatReceived = (object argument4, ChatMessageEventArgs argument5) => {
 			};
-			this.Cursor = (double& argument6, double& argument7) => {
+			this.Cursor = (ref double argument6, ref double argument7) => {
 			};
 			this.QuotaLimitation = QuotaLimitations.Easy;
 			base(null, useragent);

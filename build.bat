@@ -51,26 +51,26 @@ if exist "NMPB.Timers\bin\Release\*" xcopy /s /y "NMPB.Timers\bin\Release\*" "%B
 
 echo.
 echo === Building NMPB (Core) ===
-%MSBUILD% NMPB\NMPB.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
+%MSBUILD% NMPB\NMPB.sln /p:Configuration=Release /p:Platform="x86" /v:minimal
 if errorlevel 1 goto error
 if exist "NMPB\bin\Release\*" xcopy /s /y "NMPB\bin\Release\*" "%BUILD_DIR%\" >nul
 
 echo.
 echo === Building NMPB.RemoteControl ===
-%MSBUILD% NMPB.RemoteControl\NMPB.RemoteControl.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
+%MSBUILD% NMPB.RemoteControl\NMPB.RemoteControl.sln /p:Configuration=Release /p:Platform="x86" /v:minimal
 if errorlevel 1 goto error
 if exist "NMPB.RemoteControl\bin\Release\*" xcopy /s /y "NMPB.RemoteControl\bin\Release\*" "%BUILD_DIR%\" >nul
 
 echo.
 echo === Building NMPB-GUI ===
 if exist "NMPB\bin\Release\NMPB.dll" xcopy /y "NMPB\bin\Release\NMPB.dll" "NMPB-Gui\NMPB-GUIReferences\" >nul
-%MSBUILD% NMPB-Gui\NMPB-GUI.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
+%MSBUILD% NMPB-Gui\NMPB-GUI.sln /p:Configuration=Release /p:Platform="x86" /v:minimal
 if errorlevel 1 goto error
 if exist "NMPB-Gui\bin\Release\*" xcopy /s /y "NMPB-Gui\bin\Release\*" "%BUILD_DIR%\" >nul
 
 echo.
 echo === Building NMPB-FileExporter ===
-%MSBUILD% NMPB-FileExporter\NMPB-FileExporter.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
+%MSBUILD% NMPB-FileExporter\NMPB-FileExporter.sln /p:Configuration=Release /p:Platform="x86" /v:minimal
 if errorlevel 1 goto error
 if exist "NMPB-FileExporter\bin\Release\*" xcopy /s /y "NMPB-FileExporter\bin\Release\*" "%BUILD_DIR%\" >nul
 

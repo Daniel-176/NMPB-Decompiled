@@ -242,11 +242,7 @@ namespace NMPB.Client
 		public void OnDynamic(string evnt, Action<dynamic> callback)
 		{
 			base.On(evnt, (object[] objects) => {
-				if (NMPB.Client.Client.<>o__91.<>p__0 == null)
-				{
-					NMPB.Client.Client.<>o__91.<>p__0 = CallSite<Action<CallSite, Action<object>, object>>.Create(Binder.Invoke(CSharpBinderFlags.ResultDiscarded, typeof(NMPB.Client.Client), (IEnumerable<CSharpArgumentInfo>)(new CSharpArgumentInfo[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.UseCompileTimeType, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) })));
-				}
-				NMPB.Client.Client.<>o__91.<>p__0.Target(NMPB.Client.Client.<>o__91.<>p__0, callback, objects[0]);
+				callback(objects[0]);
 			});
 		}
 

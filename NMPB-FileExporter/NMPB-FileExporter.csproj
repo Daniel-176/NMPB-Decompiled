@@ -8,7 +8,8 @@
     <AssemblyName>NMPB-FileExporter</AssemblyName>
     <OutputType>WinExe</OutputType>
     <RootNamespace>NMPB_FileExporter</RootNamespace>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\Debug\</OutputPath>
