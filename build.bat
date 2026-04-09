@@ -43,13 +43,6 @@ echo === Building NMPB.Client ===
 if errorlevel 1 goto error
 if exist "NMPB.Client\bin\Release\*" xcopy /s /y "NMPB.Client\bin\Release\*" "%BUILD_DIR%\" >nul
 
-echo.
-echo === Building NMPB.Timers ===
-%MSBUILD% NMPB.Timers\NMPB.Timers.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
-if errorlevel 1 goto error
-if exist "NMPB.Timers\bin\Release\*" xcopy /s /y "NMPB.Timers\bin\Release\*" "%BUILD_DIR%\" >nul
-
-echo.
 echo === Building NMPB (Core) ===
 %MSBUILD% NMPB\NMPB.sln /p:Configuration=Release /p:Platform="x86" /v:minimal
 if errorlevel 1 goto error
