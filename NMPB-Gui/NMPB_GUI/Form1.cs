@@ -69,6 +69,10 @@ namespace NMPB_GUI
 
 		private Label label2;
 
+		private Label labelToken;
+
+		private TextBox textBoxToken;
+
 		private CheckBox cVisible;
 
 		private CheckBox cSolo;
@@ -86,6 +90,8 @@ namespace NMPB_GUI
 		private RichTextBox richTextBox1;
 
 		private CheckBox cbScroll;
+
+		private CheckBox cbVerbose;
 
 		private CheckBox topMostCheckBox;
 
@@ -484,6 +490,19 @@ namespace NMPB_GUI
 			this.label2.Size = new System.Drawing.Size(58, 13);
 			this.label2.TabIndex = 20;
 			this.label2.Text = "Language:";
+			this.labelToken = new Label();
+			this.labelToken.AutoSize = true;
+			this.labelToken.Location = new Point(615, 14);
+			this.labelToken.Name = "labelToken";
+			this.labelToken.Size = new System.Drawing.Size(34, 13);
+			this.labelToken.TabIndex = 34;
+			this.labelToken.Text = "Token:";
+			this.textBoxToken = new TextBox();
+			this.textBoxToken.Location = new Point(655, 11);
+			this.textBoxToken.Name = "textBoxToken";
+			this.textBoxToken.Size = new System.Drawing.Size(100, 20);
+			this.textBoxToken.TabIndex = 35;
+			this.textBoxToken.TextChanged += new EventHandler(this.textBoxToken_TextChanged);
 			this.cVisible.AutoSize = true;
 			this.cVisible.Checked = true;
 			this.cVisible.CheckState = CheckState.Checked;
@@ -561,6 +580,15 @@ namespace NMPB_GUI
 			this.cbScroll.TabIndex = 31;
 			this.cbScroll.Text = "Scroll chat";
 			this.cbScroll.UseVisualStyleBackColor = true;
+			this.cbVerbose = new CheckBox();
+			this.cbVerbose.AutoSize = true;
+			this.cbVerbose.Location = new Point(870, 61);
+			this.cbVerbose.Name = "cbVerbose";
+			this.cbVerbose.Size = new System.Drawing.Size(64, 17);
+			this.cbVerbose.TabIndex = 33;
+			this.cbVerbose.Text = "Verbose";
+			this.cbVerbose.UseVisualStyleBackColor = true;
+			this.cbVerbose.CheckedChanged += new EventHandler(this.cbVerbose_CheckedChanged);
 			this.topMostCheckBox.AutoSize = true;
 			this.topMostCheckBox.Location = new Point(537, 41);
 			this.topMostCheckBox.Name = "topMostCheckBox";
@@ -582,6 +610,7 @@ namespace NMPB_GUI
 			base.ClientSize = new System.Drawing.Size(1053, 430);
 			base.Controls.Add(this.colorButton);
 			base.Controls.Add(this.topMostCheckBox);
+			base.Controls.Add(this.cbVerbose);
 			base.Controls.Add(this.cbScroll);
 			base.Controls.Add(this.richTextBox1);
 			base.Controls.Add(this.bReflection);
@@ -589,6 +618,8 @@ namespace NMPB_GUI
 			base.Controls.Add(this.cbAllowOtherBots1);
 			base.Controls.Add(this.cChat);
 			base.Controls.Add(this.fontSizeUpDown1);
+			base.Controls.Add(this.textBoxToken);
+			base.Controls.Add(this.labelToken);
 			base.Controls.Add(this.cSolo);
 			base.Controls.Add(this.cVisible);
 			base.Controls.Add(this.label2);
@@ -718,10 +749,11 @@ namespace NMPB_GUI
 				{
 					this.room = (string)jSON.gui.room;
 				}
-				if (jSON.gui.token != (dynamic)null)
-				{
-					this.Bot.Token = (string)jSON.gui.token;
-				}
+			if (jSON.gui.token != (dynamic)null)
+			{
+				this.Bot.Token = (string)jSON.gui.token;
+				this.textBoxToken.Text = this.Bot.Token;
+			}
 				if (jSON.gui.language != (dynamic)null)
 				{
 					int num = this.comboBox2.Items.IndexOf((string)jSON.gui.language);
@@ -754,11 +786,15 @@ namespace NMPB_GUI
 				{
 					this.cReceiveChat.Checked = (bool)jSON.gui.receiveChat;
 				}
-				if (jSON.gui.scrollChat != (dynamic)null)
-				{
-					this.cbScroll.Checked = (bool)jSON.gui.scrollChat;
-				}
-				try
+			if (jSON.gui.scrollChat != (dynamic)null)
+			{
+				this.cbScroll.Checked = (bool)jSON.gui.scrollChat;
+			}
+			if (jSON.gui.verbose == true)
+			{
+				this.cbVerbose.Checked = true;
+			}
+			try
 				{
 					Point point = (Point)jSON.gui.windowPos;
 					if (point.X >= 0 && point.Y >= 0)
@@ -929,13 +965,14 @@ namespace NMPB_GUI
 				{ "room", this.room },
 				{ "language", "Default" },
 				{ "commands", "All" },
-				{ "token", "" },
+				{ "token", this.Bot.Token },
 				{ "autoRestart", false },
 				{ "autoConnect", false },
 				{ "minimized", false },
 				{ "alwaysOnTop", false },
 				{ "receiveChat", true },
 				{ "scrollChat", true },
+				{ "verbose", false },
 				{ "windowPos", new Point(-1, -1) },
 				{ "windowSize", new System.Drawing.Size(-1, -1) }
 			};
@@ -968,6 +1005,16 @@ namespace NMPB_GUI
 		private void topMostCheckBox_CheckedChanged(object sender, EventArgs e)
 		{
 			base.TopMost = this.topMostCheckBox.Checked;
+		}
+
+		private void cbVerbose_CheckedChanged(object sender, EventArgs e)
+		{
+			this.Bot.Verbose = this.cbVerbose.Checked;
+		}
+
+		private void textBoxToken_TextChanged(object sender, EventArgs e)
+		{
+			this.Bot.Token = this.textBoxToken.Text;
 		}
 	}
 }

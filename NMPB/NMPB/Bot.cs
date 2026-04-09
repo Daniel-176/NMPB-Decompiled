@@ -201,6 +201,8 @@ namespace NMPB
 
 		public bool ShowAllColors;
 
+		public bool Verbose;
+
 		private DelayedThread _songDelayedThread;
 
 		private DelayedThread _longSongDelayedThread;
@@ -676,8 +678,10 @@ namespace NMPB
 
 		private void BindListeners()
 		{
-			Player client = this.Client;
-			client.Cursor = (Player.CursorDelegate)Delegate.Combine(client.Cursor, new Player.CursorDelegate(this.Cursor));
+			NMPB.Client.Client client = this.Client;
+			client.Verbose = this.Verbose;
+			Player player = this.Client;
+			player.Cursor = (Player.CursorDelegate)Delegate.Combine(player.Cursor, new Player.CursorDelegate(this.Cursor));
 			this.Client.ChatReceived += new EventHandler<ChatMessageEventArgs>(this.OnChatReceived);
 			this.Client.UserEntered += new EventHandler<UserBaseEventArgs>(this.Welcome);
 			this.Client.UserLeft += new EventHandler<UserBaseEventArgs>(this.OnBye);
@@ -687,6 +691,10 @@ namespace NMPB
 			this.Client.Disconnected += this.ConnectionBroken;
 			this.Client.NoteBufferReceived += this.UserNotePlayed;
 			this.Client.TextDebug += new EventHandler<DebugMessageEventArgs>(this.ClientOnTextDebug);
+			if (this.Verbose)
+			{
+				this.Client.DataDebug += new EventHandler<DebugMessageEventArgs>(this.ClientOnDataDebug);
+			}
 			this.Client.NoteBufferReceived += new EventHandler<UserNoteBufferEventArgs>(this.CheckRoomEnterAllowance);
 		}
 

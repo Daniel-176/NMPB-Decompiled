@@ -65,6 +65,8 @@ namespace NMPB.Client
 
 		private bool _disposed;
 
+		public bool Verbose;
+
 		public Client(Uri uri = null, string useragent = null)
 		{
 			this.Users = new List<UserBase>();
@@ -91,6 +93,10 @@ namespace NMPB.Client
 				this._channelReceived = false;
 				this.BotUser = (UserBase)msg.u.ToObject<UserBase>();
 				this.Connected(this, new ConnectedEventArgs((string)msg.v ?? "", (string)msg.motd ?? "", this.BotUser));
+				if (this.Verbose)
+				{
+					this.TextDebug(this, new DebugMessageEventArgs(string.Format("Connected to server: {0}", this.BotUser.Name)));
+				}
 				if (msg.t != null)
 				{
 					this.ReceiveServerTime((long)msg.t);
@@ -106,40 +112,56 @@ namespace NMPB.Client
 					this.ReceiveServerTime((long)msg.t);
 				}
 			});
-			this.OnDynamic("ch", (dynamic msg) => {
-				dynamic obj = msg.ch == null;
-				if (!obj)
+		this.OnDynamic("ch", (dynamic msg) => {
+			dynamic obj = msg.ch == null;
+			if (!obj)
+			{
+				if ((obj | !(msg.ch is JObject)) == 0)
 				{
-					if ((obj | !(msg.ch is JObject)) == 0)
+					this._channelReceived = true;
+					this._desiredChannelId = (string)msg.ch._id;
+					this.Channel = (ChannelInfo)msg.ch.ToObject<ChannelInfo>();
+					if (this.Verbose)
 					{
-						this._channelReceived = true;
-						this._desiredChannelId = (string)msg.ch._id;
-						this.Channel = (ChannelInfo)msg.ch.ToObject<ChannelInfo>();
-						if (msg.p != null)
-						{
-							this.ParticipantId = (string)msg.p;
-						}
-						if (this.DesiredChannelSettings != null && this.IsOwner() && !this.DesiredChannelSettings.Equals(this.Channel.Settings))
-						{
-							this._channelReceived = false;
-							this.SetChannelSure();
-						}
-						dynamic obj1 = msg.ppl.ToObject<List<UserBase>>();
-						this.SetParticipants(msg.ppl);
-						this.ChannelUpdated(this, new ChannelEventArgs(this.Channel, this.ParticipantId, obj1, this.Users));
-						return;
+						this.TextDebug(this, new DebugMessageEventArgs(string.Format("Joined channel: {0}", this._desiredChannelId)));
 					}
+					if (msg.p != null)
+					{
+						this.ParticipantId = (string)msg.p;
+					}
+					if (this.DesiredChannelSettings != null && this.IsOwner() && !this.DesiredChannelSettings.Equals(this.Channel.Settings))
+					{
+						this._channelReceived = false;
+						this.SetChannelSure();
+					}
+					dynamic obj1 = msg.ppl.ToObject<List<UserBase>>();
+					this.SetParticipants(msg.ppl);
+					this.ChannelUpdated(this, new ChannelEventArgs(this.Channel, this.ParticipantId, obj1, this.Users));
+					return;
 				}
-			});
-			this.OnDynamic("p", (dynamic msg) => this.ParticipantUpdate(msg));
-			this.OnDynamic("m", (dynamic msg) => {
+			}
+		});
+		this.OnDynamic("p", (dynamic msg) => {
+			if (this.Verbose && msg.name != null)
+			{
+				this.TextDebug(this, new DebugMessageEventArgs(string.Format("User joined: {0}", (string)msg.name)));
+			}
+			this.ParticipantUpdate(msg);
+		});
+		this.OnDynamic("m", (dynamic msg) => {
 				string str = (string)msg.id;
 				if (this.Users.Any<UserBase>((UserBase user) => user.Id == str))
 				{
 					this.ParticipantUpdate(msg);
 				}
 			});
-			this.OnDynamic("bye", (dynamic msg) => this.RemoveParticipant((string)msg.p));
+			this.OnDynamic("bye", (dynamic msg) => {
+			if (this.Verbose && msg.p != null)
+			{
+				this.TextDebug(this, new DebugMessageEventArgs(string.Format("User left: {0}", (string)msg.p)));
+			}
+			this.RemoveParticipant((string)msg.p);
+		});
 		}
 
 		private void Connect()
@@ -320,6 +342,10 @@ namespace NMPB.Client
 
 		private void OnWsOpened(object sender, EventArgs e)
 		{
+			if (this.Verbose)
+			{
+				this.TextDebug(this, new DebugMessageEventArgs("WebSocket opened"));
+			}
 			this._connectionTime = new DateTime?(DateTime.Now);
 			string token = string.IsNullOrEmpty(this.Token) ? "setlater" : this.Token;
 			this.Send(string.Format("[{{\"m\": \"hi\", \"token\": \"{0}\"}}]", token));
