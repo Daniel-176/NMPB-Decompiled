@@ -597,12 +597,13 @@ namespace NMPB.Client
             {
                 return;
             }
+            long num = this.GetTime();
             dynamic obj = JObject.FromObject(new { n = note, s = 1 });
             lock (this._noteBuffer)
             {
                 if (this._noteBufferTime > (long)0)
                 {
-                    obj.d = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - this._noteBufferTime;
+                    obj.d = num - this._noteBufferTime;
                 }
                 else
                 {
