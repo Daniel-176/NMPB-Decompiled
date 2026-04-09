@@ -22,7 +22,7 @@ namespace NMPB.Client.Properties
 
 		[ApplicationScopedSetting]
 		[DebuggerNonUserCode]
-		[DefaultSettingValue("ws://www.multiplayerpiano.com:443")]
+		[DefaultSettingValue("wss://backend.multiplayerpiano.net")]
 		public string ServerUrl
 		{
 			get

@@ -67,7 +67,7 @@ namespace NMPB.Client
 		{
 			this.Users = new List<UserBase>();
 			this.BotUser = new UserBase("No", "No", "Anonymous", "#ffff00");
-			this._uri = uri ?? new Uri((string.IsNullOrWhiteSpace(Settings.Default.ServerUrl) ? "ws://www.multiplayerpiano.com:443" : Settings.Default.ServerUrl));
+			this._uri = uri ?? new Uri((string.IsNullOrWhiteSpace(Settings.Default.ServerUrl) ? "wss://backend.multiplayerpiano.net" : Settings.Default.ServerUrl));
 			this._useragent = useragent ?? "NMPB.Client";
 			this.ReinitWs();
 			this.BindEventListeners();
@@ -324,7 +324,7 @@ namespace NMPB.Client
 		private void OnWsOpened(object sender, EventArgs e)
 		{
 			this._connectionTime = new DateTime?(DateTime.Now);
-			this.Send("[{\"m\": \"hi\"}]");
+			this.Send("[{\"m\": \"hi\", \"token\": \"setlater\"}]");
 			this._pingInterval.Start();
 			this._noteBuffer = new JArray();
 			this._noteBufferTime = (long)0;

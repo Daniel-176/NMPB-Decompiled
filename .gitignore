@@ -1,0 +1,13 @@
+build/
+NMPB/obj/
+NMPB/bin/
+NMPB.Client/obj/
+NMPB.Client/bin/
+NMPB.Timers/obj/
+NMPB.Timers/bin/
+NMPB.RemoteControl/obj/
+NMPB.RemoteControl/bin/
+NMPB-Gui/obj/
+NMPB-Gui/bin/
+NMPB-FileExporter/obj/
+NMPB-FileExporter/bin/
