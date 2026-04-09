@@ -161,7 +161,7 @@ namespace NMPB
 
 		private readonly string[] _sans;
 
-		private readonly object _chatlocker;
+		private object _chatlocker;
 
 		private const int TurnTimeDefault = 30;
 
@@ -528,19 +528,20 @@ namespace NMPB
 			}
 		}
 
-		public Bot(string root = "")
-		{
-			this.AvalibleCommandsSet = new Dictionary<string, HashSet<string>>();
-			this.RootDirectory = (root == null) ? Directory.GetCurrentDirectory() : root;
-			this._octaveCount = new LimitedValue(0, 10, -127, 127, 0);
-			this._echoCount = new LimitedValue(0, 10, 0, 127, 0);
-			this._echoDelay = new LimitedValue(0, 1000, 0, 10000, 0);
-			this._echoFade = new LimitedValue(0, 100, 0, 100, 100);
-			this._transpose = new LimitedValue(-24, 24, -127, 127, 0);
-			this._names = new List<string>();
-			this._hashes = new List<string>();
-			this._mainMutex = new Mutex(false, "NMPB");
-			this._l = new Localization();
+	public Bot(string root = "")
+	{
+		this.AvalibleCommandsSet = new Dictionary<string, HashSet<string>>();
+		this.RootDirectory = (root == null) ? Directory.GetCurrentDirectory() : root;
+		this._octaveCount = new LimitedValue(0, 10, -127, 127, 0);
+		this._echoCount = new LimitedValue(0, 10, 0, 127, 0);
+		this._echoDelay = new LimitedValue(0, 1000, 0, 10000, 0);
+		this._echoFade = new LimitedValue(0, 100, 0, 100, 100);
+		this._transpose = new LimitedValue(-24, 24, -127, 127, 0);
+		this._names = new List<string>();
+		this._hashes = new List<string>();
+		this._mainMutex = new Mutex(false, "NMPB");
+		this._chatlocker = new object();
+		this._l = new Localization();
 			this._roomIsVisible = true;
 			this._roomHasChat = true;
 			this._roomSoloPlay = false;

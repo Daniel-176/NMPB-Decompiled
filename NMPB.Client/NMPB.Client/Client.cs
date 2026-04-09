@@ -171,6 +171,14 @@ namespace NMPB.Client
 				return;
 			}
 			this.ReinitWs();
+			if (this.Verbose)
+			{
+				EventHandler<DebugMessageEventArgs> textDebug = this.TextDebug;
+				if (textDebug != null)
+				{
+					textDebug(this, new DebugMessageEventArgs("Opening WebSocket..."));
+				}
+			}
 			lock (this._ws)
 			{
 				this._ws.Open();
@@ -322,7 +330,19 @@ namespace NMPB.Client
 
 		private void OnWsError(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
 		{
-			this.ConnectionError(this, new NMPB.Client.ErrorEventArgs(e.Exception));
+			if (this.Verbose)
+			{
+				EventHandler<DebugMessageEventArgs> textDebug = this.TextDebug;
+				if (textDebug != null && e.Exception != null)
+				{
+					textDebug(this, new DebugMessageEventArgs(string.Format("WebSocket error: {0}", e.Exception.Message)));
+				}
+			}
+			EventHandler<NMPB.Client.ErrorEventArgs> connectionError = this.ConnectionError;
+			if (connectionError != null && e.Exception != null)
+			{
+				connectionError(this, new NMPB.Client.ErrorEventArgs(e.Exception));
+			}
 		}
 
 		private void OnWsMessageReceived(object sender, MessageReceivedEventArgs args)
@@ -430,9 +450,17 @@ namespace NMPB.Client
 			this.ServerTimeOffset = t - this.GetTime();
 		}
 
-		private void ReinitWs()
+	private void ReinitWs()
+	{
+		if (this.Verbose)
 		{
-			this._ws = new WebSocket(this._uri.ToString(), "", null, null, this._useragent, this._uri.Host, WebSocketVersion.None, null, SslProtocols.None, 0)
+			EventHandler<DebugMessageEventArgs> textDebug = this.TextDebug;
+			if (textDebug != null)
+			{
+				textDebug(this, new DebugMessageEventArgs(string.Format("Initializing WebSocket to {0}", this._uri)));
+			}
+		}
+		this._ws = new WebSocket(this._uri.ToString(), "", null, null, this._useragent, this._uri.Host, WebSocketVersion.None, null, SslProtocols.None, 0)
 			{
 				ReceiveBufferSize = 8192
 			};
@@ -558,6 +586,14 @@ namespace NMPB.Client
 
 		public void Start()
 		{
+			if (this.Verbose)
+			{
+				EventHandler<DebugMessageEventArgs> textDebug = this.TextDebug;
+				if (textDebug != null)
+				{
+					textDebug(this, new DebugMessageEventArgs(string.Format("Starting client for {0}", this._uri)));
+				}
+			}
 			this._canConnect = true;
 			this.Connect();
 		}
